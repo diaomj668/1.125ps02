@@ -88,7 +88,9 @@ I personalized the application by allowing users to enter a topic or reading goa
 
 ## Demo
 
-The narrated demonstration video has not been added yet.
+[Watch the narrated demo](https://github.com/diaomj668/1.125ps02/blob/main/demo_tiny.mp4) (3 min 57 sec, 480p, approximately 2.4 MB).
+
+The video demonstrates adding a book, searching and updating the library, and generating recommendations. If your browser cannot play the preview, download the MP4 and open it in an AV1-compatible player.
 
 ## Credits
 
