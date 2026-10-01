@@ -84,7 +84,7 @@ The three strategies run in parallel. Their results are combined, filtered, and 
 
 ## Personalization
 
-My interests include architecture, cities, technology, AI, and design. I chose to enter a topic for each recommendation request so the application can follow what I am exploring at the moment. The history strategy connects suggestions to my saved books and ratings, while discovery adds unexpected perspectives. I prioritize books supported by multiple strategies and show their reasons so I can decide what to read. The English interface uses a compact reading-room theme with teal accents.
+I personalized the application by allowing users to enter a topic or reading goal for each recommendation request instead of using preset interests. The history strategy considers saved books and ratings, while the discovery strategy explores unexpected connections beyond familiar genres and authors. Books recommended by multiple strategies rank higher, and recommendation reasons help users choose what to read. I also designed a compact reading-room interface with teal accents.
 
 ## Demo
 
