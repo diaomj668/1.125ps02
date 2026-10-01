@@ -1,42 +1,106 @@
-# 1.125ps02 — Personal Book Manager
+# The Reading Room | Personal Book Manager
 
-## Run
+A personal terminal application for MIT 1.125 Problem Set 2. Manage a reading library, enrich book information, and discover books through three parallel Codex recommendation strategies.
 
-Requires Bash, Python 3, Gum, and the Codex CLI. The app also detects Codex bundled inside ChatGPT.app or Codex.app on macOS. Set CODEX_BIN to an absolute executable path if needed. Sign in with `codex login` and check `codex login status`, then run:
+## Setup and run
+
+These instructions are for macOS with [Homebrew](https://brew.sh/) installed.
+
+### 1. Install dependencies
+
+```bash
+brew install git gum python
+brew install --cask codex
+```
+
+The application uses Bash, Gum, Python 3, and the Codex CLI. It does not require jq or additional Python packages. See the [official Codex CLI documentation](https://developers.openai.com/codex/cli/) for other installation options.
+
+### 2. Download this project
+
+```bash
+git clone https://github.com/diaomj668/1.125ps02.git
+cd 1.125ps02
+```
+
+If you already downloaded the project, open a terminal in the directory containing `app.sh` instead.
+
+### 3. Sign in to Codex
+
+```bash
+codex login
+codex login status
+```
+
+Choose **Sign in with ChatGPT** and use your own account with Codex access. Internet access and available account usage are required for metadata and recommendations.
+
+### 4. Start the application
 
 ```bash
 ./app.sh
 ```
 
-Choose Get Recommendations and enter any topic or reading goal in English. Three Codex calls run concurrently. Each request sends your topic and saved library (including ratings) to Codex and uses your signed-in account. Network access is required. Requests time out after 180 seconds; failures are shown instead of silently falling back to a fixed book list.
+Use the arrow keys to navigate, Enter to select, and **Quit** to exit. Press Enter at the return prompt to go back to the main menu.
+
+## What you can do
+
+| Menu action | Behavior |
+| --- | --- |
+| Browse Library | Display saved books, reading statuses, and ratings |
+| Add Book | Enter a title and author, request metadata, edit the genre, and save |
+| Search Library | Search saved records by keyword |
+| Update Status / Rating | Change a saved book's reading status or rating |
+| Get Recommendations | Enter a topic, wait for three strategies, and optionally save a result |
+
+Statuses are `owned`, `want-to-read`, `reading`, and `finished`. Ratings are 1-5; 0 means unrated. Saved recommendations start as `want-to-read`.
+
+Try a topic such as `sustainable architecture`, `urban housing`, or `AI and design`. Recommendations use your current input, not a preset list of topics or books.
 
 ## Architecture
 
-The required architecture is preserved: app.sh starts the UI; UI scripts prompt and display; workflows coordinate components; recommendation scripts generate candidates; only data/book_database.sh reads or writes books.csv. Components pass TSV records and the database stores CSV. A small Python CSV routine handles quoted titles correctly.
+The application follows **UI -> Workflows -> Book / Recommendation Components -> Data Layer -> Storage**. `app.sh` checks dependencies and opens the main menu. The `ui/` scripts handle interaction, while `workflows/` coordinate operations. The `books/` scripts enrich and search books; the `recommendations/` scripts generate and refine candidates. Only `data/book_database.sh` directly reads or writes `data/books.csv`. Bash handles process coordination, pipes, and temporary files. Small Python blocks parse JSON, and Python's standard CSV library preserves commas and quotes in stored records.
 
-## Personalization and recommendations
+## Personalization
 
-Each request uses your entered topic. The history strategy infers preferences from saved books and ratings; the interests strategy focuses directly on the topic; discovery explores unexpected connections beyond your usual genres. Bash directly launches Codex, waits for it, enforces a 180-second timeout, and cleans temporary files. Small Python blocks only validate JSON and format TSV. The recommendations directory contains only the four files specified in the assignment. Codex output is model-generated and is not independently verified against a book database.
+My interests include architecture, cities, technology, AI, and design. I chose to enter a topic for each recommendation request so the application can follow what I am exploring at the moment. The history strategy connects suggestions to my saved books and ratings, while discovery adds unexpected perspectives. I prioritize books supported by multiple strategies and show their reasons so I can decide what to read. The English interface uses a compact reading-room theme with teal accents.
 
-The workflow launches all three scripts with &, captures process IDs with $!, waits for completion with wait, and displays running/done progress. It combines their output with cat and pipes it into refine_recommendations.sh for duplicate removal, exclusion of saved books, and a shortlist of at most six. Books are ranked by votes from distinct strategies (1-3); repeated suggestions within one strategy count once. Ties retain candidate order, and the shortlist shows the supporting strategies and reasons. The UI saves selected books directly without another Codex call.
+## How recommendations work
 
-## Other operations
+1. Enter a topic or reading goal.
+2. The workflow starts **history**, **interests**, and **discovery** as separate Bash background processes using `&`, recording their IDs with `$!`.
+3. Each strategy calls Codex independently. The terminal shows `running` and `done`; `wait` synchronizes completion.
+4. The workflow combines their outputs and passes them through `|` to `refine_recommendations.sh`.
+5. Refinement removes saved books and counts votes from distinct strategies. A book can receive 1-3 votes; repeated suggestions within one strategy count once. Ties retain candidate order, and up to six results are shown.
+6. Select a book and confirm to save it directly, without another Codex request.
 
-Browse, add, search, and update reading status or ratings from the menu. Statuses are owned, want-to-read, reading, and finished. Ratings are 1-5; 0 is unrated. Arrow keys select and Enter confirms.
+## Codex usage and stored data
 
-books/fetch_book_metadata.sh calls Codex for the genre and original publication year of the entered title and author. There is no built-in book list. Unknown fields are returned as unknown; model-generated facts are not independently verified. Adding a book makes one metadata request using your Codex allowance. The UI displays the year and lets you edit the genre before saving. The existing CSV schema does not store the year; links remain unknown (-). Fetching metadata and saving are separate workflow actions, so confirming a manually added book does not repeat the request.
+- Each recommendation run makes **three Codex requests**. Repeating a topic makes new requests; results are not cached.
+- Manually adding a book makes **one metadata request**. Confirming its save does not repeat the request.
+- Browsing, searching saved books, updating ratings/statuses, and saving an existing recommendation make **no Codex requests**.
+- Recommendation requests send the entered topic and saved library, including ratings, to Codex. Metadata requests send the entered title and author.
+- Calls use the account signed in on the computer running the application. With ChatGPT login they consume that account's Codex allowance; API-key login follows API billing.
 
-## Direct commands
+Metadata contains genre and original publication year. Uncertain fields are requested as `unknown`. The year is displayed during addition but is not stored in the current CSV schema. Links are currently represented by `-`. Generated book information is not independently verified and may contain errors.
+
+Library columns are `title,author,genre,status,rating,link`. The repository includes its current saved library. To start with a separate empty library without changing that file:
 
 ```bash
-./workflows/get_recommendations.sh 'sustainable urban housing'
-./workflows/manage_library.sh list
+BOOK_DB="$HOME/reading-room-books.csv" ./app.sh
 ```
 
-Use BOOK_DB to select a separate library for tests. TSV library columns are title, author, genre, status, rating, link. Candidate columns are title, author, genre, strategy, reason, link. Final recommendation column 4 is the number of distinct supporting strategies. Newlines and tabs are not allowed inside stored fields. Concurrent editing from multiple application instances is not supported.
+The file is created when you first save a book. Concurrent editing of the same library from multiple application instances is not supported.
 
-## Submission
+## Troubleshooting
 
-The original starter repository license is preserved in LICENSE. Add a short narrated demo video or a visible link, and push to your own GitHub repository after checking the remote.
+- **Missing dependency:** complete the installation steps above and restart the terminal.
+- **Codex not found:** the app checks PATH and the standard macOS ChatGPT.app/Codex.app locations. For another location, run `CODEX_BIN="/absolute/path/to/codex" ./app.sh`.
+- **Codex failed or timed out:** check `codex login status`, your connection, and account usage. Each request has a 180-second timeout. The app reports failure instead of falling back to a fixed book list.
+- **Permission denied after downloading a ZIP:** restore script permissions with `chmod +x app.sh ui/*.sh workflows/*.sh books/*.sh recommendations/*.sh data/*.sh`, then run `./app.sh`.
 
-Codex integration follows the [official non-interactive CLI documentation](https://developers.openai.com/codex/noninteractive/).
+## Demo
+
+The narrated demonstration video has not been added yet.
+
+## Credits
+
+Based on the [course starter repository](https://github.com/onexi/ps02). The original MIT license is preserved in `LICENSE`.
