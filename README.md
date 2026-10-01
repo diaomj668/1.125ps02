@@ -41,6 +41,20 @@ Choose **Sign in with ChatGPT** and use your own account with Codex access. Inte
 
 Use the arrow keys to navigate, Enter to select, and **Quit** to exit. Press Enter at the return prompt to go back to the main menu.
 
+## What you can do
+
+| Menu action | Behavior |
+| --- | --- |
+| Browse Library | Display saved books, reading statuses, and ratings |
+| Add Book | Enter a title and author, request metadata, edit the genre, and save |
+| Search Library | Search saved records by keyword |
+| Update Status / Rating | Change a saved book's reading status or rating |
+| Get Recommendations | Enter a topic, wait for three strategies, and optionally save a result |
+
+Statuses are `owned`, `want-to-read`, `reading`, and `finished`. Ratings are 1-5; 0 means unrated. Saved recommendations start as `want-to-read`.
+
+Try a topic such as `sustainable architecture`, `urban housing`, or `AI and design`. Recommendations use your current input, not a preset list of topics or books.
+
 ## Architecture
 
 The application follows **UI -> Workflows -> Book / Recommendation Components -> Data Layer -> Storage**. `app.sh` checks dependencies and opens the main menu. The `ui/` scripts handle interaction, while `workflows/` coordinate operations. The `books/` scripts enrich and search books; the `recommendations/` scripts generate and refine candidates. Only `data/book_database.sh` directly reads or writes `data/books.csv`. Bash handles process coordination, pipes, and temporary files. Small Python blocks parse JSON, and Python's standard CSV library preserves commas and quotes in stored records.
