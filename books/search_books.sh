@@ -1,3 +1,6 @@
 #!/bin/bash
-# Book component: search the user's library.
-# TODO: Accept a search term and return matching books.
+set -euo pipefail
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+term=${1:-}
+if [ "$#" -eq 0 ]; then IFS= read -r term || [ -n "$term" ]; fi
+exec "$ROOT/data/book_database.sh" search "$term"
