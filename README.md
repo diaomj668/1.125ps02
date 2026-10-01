@@ -67,6 +67,21 @@ flowchart LR
     D --> S[("Book Library")]
 ```
 
+### Recommendation flow
+
+```mermaid
+flowchart LR
+    I["Topic + Library"] --> H["History"]
+    I --> T["Interests"]
+    I --> D["Discovery"]
+    H --> C["Combine"]
+    T --> C
+    D --> C
+    C --> R["Refine"] --> O["Display"]
+```
+
+The three strategies run in parallel. Their results are combined, filtered, and ranked before display.
+
 ## Personalization
 
 My interests include architecture, cities, technology, AI, and design. I chose to enter a topic for each recommendation request so the application can follow what I am exploring at the moment. The history strategy connects suggestions to my saved books and ratings, while discovery adds unexpected perspectives. I prioritize books supported by multiple strategies and show their reasons so I can decide what to read. The English interface uses a compact reading-room theme with teal accents.
