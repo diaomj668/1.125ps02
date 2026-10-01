@@ -59,54 +59,13 @@ Try a topic such as `sustainable architecture`, `urban housing`, or `AI and desi
 
 The application follows **UI -> Workflows -> Book / Recommendation Components -> Data Layer -> Storage**. `app.sh` checks dependencies and opens the main menu. The `ui/` scripts handle interaction, while `workflows/` coordinate operations. The `books/` scripts enrich and search books; the `recommendations/` scripts generate and refine candidates. Only `data/book_database.sh` directly reads or writes `data/books.csv`. Bash handles process coordination, pipes, and temporary files. Small Python blocks parse JSON, and Python's standard CSV library preserves commas and quotes in stored records.
 
-### Application layers
-
 ```mermaid
-flowchart TD
-    A["app.sh · Entry point"] --> U["ui/ · Menus, input, and display"]
-    U --> W["workflows/ · Coordinate operations"]
-    W --> B["books/ · Metadata and search"]
-    W --> R["recommendations/ · Generate and refine"]
-    W --> D["data/book_database.sh · Data access"]
-    B --> D
-    R --> D
-    D <--> S[("data/books.csv")]
-    B -. "Metadata requests" .-> C["Codex CLI"]
-    R -. "Recommendation requests" .-> C
-    classDef interface fill:#e6f4f1,stroke:#24786a,color:#183e36;
-    classDef storage fill:#fff3db,stroke:#aa7722,color:#513b16;
-    class A,U,W interface;
-    class D,S storage;
+flowchart LR
+    UI["User Interface"] --> W["Workflows"]
+    W --> C["Book & Recommendation Components"]
+    C --> D["Data Layer"]
+    D --> S[("Book Library")]
 ```
-
-### Parallel recommendation workflow
-
-```mermaid
-flowchart TD
-    I["User enters a topic"] --> W["get_recommendations.sh"]
-    W --> H["History · Codex request"]
-    W --> T["Interests · Codex request"]
-    W --> D["Discovery · Codex request"]
-    L["Saved library via the data layer"] -.-> H
-    L -.-> T
-    L -.-> D
-    H --> J["wait · Synchronize all three processes"]
-    T --> J
-    D --> J
-    J --> C["cat · Combine candidate lists"]
-    C -->|"pipe"| F["refine_recommendations.sh"]
-    L -. "Exclude saved books" .-> F
-    F --> V["Deduplicate and rank by distinct strategy votes"]
-    V --> UI["Display up to six books"]
-    UI --> Q{"Save selected book?"}
-    Q -->|"Yes"| DB["manage_library.sh save → book_database.sh"]
-    DB --> S[("books.csv")]
-    Q -->|"No"| M["Return to menu"]
-    classDef parallel fill:#e6f4f1,stroke:#24786a,color:#183e36;
-    class H,T,D parallel;
-```
-
-The three strategies start concurrently with `&`; `$!` records their process IDs. Progress goes to the terminal while `wait` synchronizes completion. The combined output is piped into refinement. Saving a selected recommendation does not make another Codex request.
 
 ## Personalization
 
