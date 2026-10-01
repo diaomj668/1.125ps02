@@ -88,7 +88,7 @@ I personalized the application by allowing users to enter a topic or reading goa
 
 ## Demo
 
-[Watch the narrated demo](https://github.com/diaomj668/1.125ps02/blob/main/demo_tiny.mp4)
+[Watch the narrated demo](https://github.com/diaomj668/1.125ps02/blob/main/demo_h264.mp4)
 
 The video demonstrates adding a book, searching and updating the library, and generating recommendations.
 
